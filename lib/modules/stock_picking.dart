@@ -136,19 +136,7 @@ class _StockPickingState extends State<StockPicking> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        bottom: PreferredSize(
-          preferredSize: Size(size.width, 0),
-          child: TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            tween: Tween<double>(
-              begin: 0,
-              end: progress ?? currFinishLineCount / totalLineCount,
-            ),
-            builder: (context, value, _) => LinearProgressIndicator(
-                value: progressIndicator ? null : value),
-          ),
-        ),
+        scrolledUnderElevation: 0,
         backgroundColor: primaryColor,
         title: const Text('拣货'),
         actions: [
@@ -157,6 +145,13 @@ class _StockPickingState extends State<StockPicking> {
               onPressed: () async {
                 barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
                     "#ff6666", "Cancel", true, ScanMode.DEFAULT);
+                for (PickingLineModel line in pickingLineList ?? []) {
+                  if (line.displayName == barcodeScanRes) {
+                    dynamic temp = await writeLine(line.id, ['picked', true]);
+                    _loadData();
+                    break;
+                  }
+                }
               }),
           IconButton(icon: const Icon(Icons.refresh), onPressed: refresh),
           isDone
@@ -181,7 +176,20 @@ class _StockPickingState extends State<StockPicking> {
                       });
                     });
                   })
-        ], //LinearProgressIndicator(value: progress),
+        ],
+        bottom: PreferredSize(
+          preferredSize: Size(size.width, 0),
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            tween: Tween<double>(
+              begin: 0,
+              end: progress ?? currFinishLineCount / totalLineCount,
+            ),
+            builder: (context, value, _) => LinearProgressIndicator(
+                value: progressIndicator ? null : value),
+          ),
+        ), //LinearProgressIndicator(value: progress),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -300,18 +308,19 @@ class _StockPickingState extends State<StockPicking> {
                                                       pickingLineList?[index]
                                                           .id,
                                                       ['picked', value]);
-                                                  setState(() {
-                                                    currFinishLineCount +=
-                                                        (value ?? false
-                                                            ? 1
-                                                            : -1);
-                                                    pl?.setPickingLine(
-                                                        pickingLineList?[index]
-                                                            .id,
-                                                        value!);
-                                                    pickingLineList?[index]
-                                                        .picked = value!;
-                                                  });
+                                                  _loadData();
+                                                  // setState(() {
+                                                  //   currFinishLineCount +=
+                                                  //       (value ?? false
+                                                  //           ? 1
+                                                  //           : -1);
+                                                  //   pl?.setPickingLine(
+                                                  //       pickingLineList?[index]
+                                                  //           .id,
+                                                  //       value!);
+                                                  //   pickingLineList?[index]
+                                                  //       .picked = value!;
+                                                  // });
                                                 }),
                                     ],
                                   ),
