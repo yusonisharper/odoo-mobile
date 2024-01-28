@@ -81,12 +81,12 @@ class HomePage extends StatelessWidget {
   }
 }
 
-String ref = 'WH/OUT/00057';
+final TextEditingController _controllerOutlined = TextEditingController();
 
 class MainMenuTextInput extends StatelessWidget {
   MainMenuTextInput({super.key});
-  final TextEditingController _controllerOutlined = TextEditingController();
-  Future<dynamic> searchRead() {
+
+  Future<dynamic> searchRead(String ref) {
     return orpc.callKw({
       'model': 'stock.picking',
       'method': 'search_read',
@@ -101,6 +101,7 @@ class MainMenuTextInput extends StatelessWidget {
           'name',
           'origin',
           'location_id',
+          'state',
         ],
         'limit': 80,
       },
@@ -114,6 +115,20 @@ class MainMenuTextInput extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(smallSpacing),
       child: TextField(
+        onSubmitted: (String text) {
+          searchRead(text).then((dynamicData) {
+            if (dynamicData.isEmpty) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('无法找到')));
+            } else {
+              //print(dynamicData[0]);
+              Navigator.push(context,
+                  MaterialPageRoute<void>(builder: (BuildContext context) {
+                return StockPicking(dynamicData[dynamicData.length - 1]);
+              }));
+            }
+          });
+        },
         controller: _controllerOutlined,
         decoration: InputDecoration(
           prefixIcon: _Search(searchRead),
@@ -129,21 +144,22 @@ class MainMenuTextInput extends StatelessWidget {
 }
 
 class _Search extends StatelessWidget {
-  final Future<dynamic> Function() callback;
-  _Search(this.callback);
+  final Future<dynamic> Function(String s) callback;
+  const _Search(this.callback);
   //Map? data;
   @override
   Widget build(BuildContext context) => IconButton(
         icon: const Icon(Icons.search),
         onPressed: () {
-          callback().then((dynamicData) {
-            if (dynamicData == []) {
-              print("It is Empty!!!");
+          callback(_controllerOutlined.text).then((dynamicData) {
+            if (dynamicData.isEmpty) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('无法找到')));
             } else {
               //print(dynamicData[0]);
               Navigator.push(context,
                   MaterialPageRoute<void>(builder: (BuildContext context) {
-                return StockPicking(dynamicData[0]);
+                return StockPicking(dynamicData[dynamicData.length - 1]);
               }));
             }
           });

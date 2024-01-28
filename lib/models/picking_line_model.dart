@@ -19,9 +19,9 @@ class PickingLine {
   PickingLine({required this.pickingLineList}) {
     getLocations();
   }
-  List uniqueLocationList = [];
 
   List<dynamic> getLocations() {
+    List uniqueLocationList = [];
     String tempLoc;
     for (Map line in pickingLineList) {
       tempLoc = line['location_id'][1];
@@ -29,6 +29,7 @@ class PickingLine {
         uniqueLocationList.add(tempLoc);
       }
     }
+    uniqueLocationList.sort();
     return uniqueLocationList;
   }
 
@@ -43,6 +44,7 @@ class PickingLine {
             picked: line['picked']));
       }
     }
+    pickingLines.sort((a, b) => a.displayName.compareTo(b.displayName));
     return pickingLines;
   }
 
@@ -63,5 +65,19 @@ class PickingLine {
       }
     }
     return picked;
+  }
+
+  int getLineCount() {
+    return pickingLineList.length;
+  }
+
+  int getPickedLineCount() {
+    int count = 0;
+    for (Map line in pickingLineList) {
+      if (line['picked']) {
+        count++;
+      }
+    }
+    return count;
   }
 }

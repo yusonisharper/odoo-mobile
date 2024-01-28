@@ -11,8 +11,12 @@ class StockPicking extends StatefulWidget {
 
 class _StockPickingState extends State<StockPicking> {
   int stockMoveId = 0;
-  var currPickingLocation = "";
+  String currPickingLocation = "";
   int currLocationIndex = 0;
+  int totalLineCount = 1;
+  int currFinishLineCount = 0;
+  bool progressIndicator = false;
+  String orderState = 'draft';
 
   PickingLine? pl;
   List<dynamic> locationList = [];
@@ -20,8 +24,20 @@ class _StockPickingState extends State<StockPicking> {
   @override
   void initState() {
     stockMoveId = widget.data['id'];
+    orderState = widget.data['state'];
     super.initState();
     _loadData();
+  }
+
+  Future<void> _loadData() async {
+    pl = PickingLine(pickingLineList: await searchReadLines());
+    setState(() {
+      locationList = pl?.getLocations() ?? [];
+      currPickingLocation = locationList[currLocationIndex];
+      pickingLineList = pl?.getPickingLines(currPickingLocation);
+      totalLineCount = pl?.getLineCount() ?? 1;
+      currFinishLineCount = pl?.getPickedLineCount() ?? 0;
+    });
   }
 
   Future<List> searchReadLines() async {
@@ -42,7 +58,7 @@ class _StockPickingState extends State<StockPicking> {
         ]
       },
     });
-    if (_data == []) {
+    if (_data.isEmpty) {
       print("It is Empty!!!");
     }
     return _data;
@@ -58,7 +74,7 @@ class _StockPickingState extends State<StockPicking> {
       ],
       'kwargs': {},
     });
-    if (_data == []) {
+    if (_data == null) {
       print("It is Empty!!!");
     }
     return _data;
@@ -79,15 +95,12 @@ class _StockPickingState extends State<StockPicking> {
   }
 
   Future<void> refresh() async {
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    pl = PickingLine(pickingLineList: await searchReadLines());
     setState(() {
-      locationList = pl?.getLocations() ?? [];
-      currPickingLocation = locationList[currLocationIndex];
-      pickingLineList = pl?.getPickingLines(currPickingLocation);
+      progressIndicator = true;
+    });
+    _loadData();
+    setState(() {
+      progressIndicator = false;
     });
   }
 
@@ -109,6 +122,8 @@ class _StockPickingState extends State<StockPicking> {
 
   @override
   Widget build(BuildContext context) {
+    final double? progress =
+        progressIndicator ? null : currFinishLineCount / totalLineCount;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -117,19 +132,27 @@ class _StockPickingState extends State<StockPicking> {
         actions: [
           IconButton(icon: const Icon(Icons.attach_file), onPressed: () {}),
           IconButton(icon: const Icon(Icons.refresh), onPressed: refresh),
-          IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: () {
-                validate().then((validated) {
-                  if (!validated) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('没有全部拣货，无法验证')));
-                  } else {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(const SnackBar(content: Text('验证成功')));
-                  }
-                });
-              })
+          orderState == 'done'
+              ? Container()
+              : IconButton(
+                  icon: const Icon(Icons.check),
+                  onPressed: () {
+                    setState(() {
+                      progressIndicator = true;
+                    });
+                    validate().then((validated) {
+                      if (!validated) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('没有全部拣货，无法验证')));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('验证成功')));
+                      }
+                      setState(() {
+                        progressIndicator = false;
+                      });
+                    });
+                  })
         ],
       ),
       body: Padding(
@@ -137,6 +160,9 @@ class _StockPickingState extends State<StockPicking> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
+            LinearProgressIndicator(
+              value: progress,
+            ),
             Container(
                 alignment: Alignment.topLeft,
                 child: RichText(
@@ -239,18 +265,26 @@ class _StockPickingState extends State<StockPicking> {
                                       Checkbox(
                                           autofocus: true,
                                           value: pickingLineList?[index].picked,
-                                          onChanged: (bool? value) async {
-                                            bool temp = await writeLine(
-                                                pickingLineList?[index].id,
-                                                ['picked', value]);
-                                            setState(() {
-                                              pl?.setPickingLine(
-                                                  pickingLineList?[index].id,
-                                                  value!);
-                                              pickingLineList?[index].picked =
-                                                  value!;
-                                            });
-                                          }),
+                                          onChanged: orderState == 'done'
+                                              ? null
+                                              : (bool? value) async {
+                                                  bool temp = await writeLine(
+                                                      pickingLineList?[index]
+                                                          .id,
+                                                      ['picked', value]);
+                                                  setState(() {
+                                                    currFinishLineCount +=
+                                                        (value ?? false
+                                                            ? 1
+                                                            : -1);
+                                                    pl?.setPickingLine(
+                                                        pickingLineList?[index]
+                                                            .id,
+                                                        value!);
+                                                    pickingLineList?[index]
+                                                        .picked = value!;
+                                                  });
+                                                }),
                                     ],
                                   ),
                                 ),
