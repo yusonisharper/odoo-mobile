@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/main.dart';
 import '../models/picking_line_model.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 class StockPicking extends StatefulWidget {
   final Map data;
@@ -17,6 +18,8 @@ class _StockPickingState extends State<StockPicking> {
   int currFinishLineCount = 0;
   bool progressIndicator = false;
   String orderState = 'draft';
+  String barcodeScanRes = '';
+  bool isDone = false;
 
   PickingLine? pl;
   List<dynamic> locationList = [];
@@ -25,6 +28,7 @@ class _StockPickingState extends State<StockPicking> {
   void initState() {
     stockMoveId = widget.data['id'];
     orderState = widget.data['state'];
+    isDone = _isDone();
     super.initState();
     _loadData();
   }
@@ -120,19 +124,42 @@ class _StockPickingState extends State<StockPicking> {
     });
   }
 
+  bool _isDone() {
+    return orderState == 'done';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
     final double? progress =
         progressIndicator ? null : currFinishLineCount / totalLineCount;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        bottom: PreferredSize(
+          preferredSize: Size(size.width, 0),
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            tween: Tween<double>(
+              begin: 0,
+              end: progress ?? currFinishLineCount / totalLineCount,
+            ),
+            builder: (context, value, _) => LinearProgressIndicator(
+                value: progressIndicator ? null : value),
+          ),
+        ),
         backgroundColor: primaryColor,
         title: const Text('拣货'),
         actions: [
-          IconButton(icon: const Icon(Icons.attach_file), onPressed: () {}),
+          IconButton(
+              icon: const Icon(Icons.camera_alt),
+              onPressed: () async {
+                barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+                    "#ff6666", "Cancel", true, ScanMode.DEFAULT);
+              }),
           IconButton(icon: const Icon(Icons.refresh), onPressed: refresh),
-          orderState == 'done'
+          isDone
               ? Container()
               : IconButton(
                   icon: const Icon(Icons.check),
@@ -147,22 +174,20 @@ class _StockPickingState extends State<StockPicking> {
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('验证成功')));
+                        isDone = true;
                       }
                       setState(() {
                         progressIndicator = false;
                       });
                     });
                   })
-        ],
+        ], //LinearProgressIndicator(value: progress),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            LinearProgressIndicator(
-              value: progress,
-            ),
             Container(
                 alignment: Alignment.topLeft,
                 child: RichText(
@@ -203,13 +228,13 @@ class _StockPickingState extends State<StockPicking> {
                 currLocationIndex > 0
                     ? IconButton(
                         onPressed: goPrevLocation,
-                        icon: const Icon(Icons.arrow_left))
-                    : const SizedBox(width: 48),
+                        icon: const Icon(Icons.arrow_left, size: 38))
+                    : const SizedBox(width: 54),
                 SizedBox(
                     height: 100,
                     width: 220,
                     child: Card(
-                        color: Colors.grey,
+                        color: isDone ? Colors.grey : Colors.indigoAccent[100],
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Center(
@@ -221,12 +246,12 @@ class _StockPickingState extends State<StockPicking> {
                 currLocationIndex < locationList.length - 1
                     ? IconButton(
                         onPressed: goNextLocation,
-                        icon: const Icon(Icons.arrow_right))
-                    : const SizedBox(width: 48),
+                        icon: const Icon(Icons.arrow_right, size: 38))
+                    : const SizedBox(width: 54),
               ],
             ),
             const SizedBox(height: 25),
-            Expanded(
+            Flexible(
               child: Scrollbar(
                   child: ListView.builder(
                       scrollDirection: Axis.vertical,
@@ -236,9 +261,11 @@ class _StockPickingState extends State<StockPicking> {
                         return Container(
                           height: 75,
                           decoration: BoxDecoration(
-                            color: index % 2 == 0
-                                ? Color.fromARGB(146, 174, 174, 174)
-                                : Color.fromARGB(219, 236, 236, 236),
+                            color: isDone
+                                ? Colors.grey
+                                : (index % 2 == 0
+                                    ? Colors.indigo[100]
+                                    : Colors.indigo[50]),
                             //border: Border.all(),
                             borderRadius: BorderRadius.circular(2),
                           ),
@@ -263,9 +290,10 @@ class _StockPickingState extends State<StockPicking> {
                                           textScaler:
                                               const TextScaler.linear(1.5)),
                                       Checkbox(
+                                          activeColor: Colors.green,
                                           autofocus: true,
                                           value: pickingLineList?[index].picked,
-                                          onChanged: orderState == 'done'
+                                          onChanged: isDone
                                               ? null
                                               : (bool? value) async {
                                                   bool temp = await writeLine(
@@ -290,7 +318,7 @@ class _StockPickingState extends State<StockPicking> {
                                 ),
                               ]),
                         );
-                      })), //Text("$displayName, $quantity")
+                      })),
             )
           ],
         ),
