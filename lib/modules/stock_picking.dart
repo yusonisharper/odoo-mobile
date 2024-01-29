@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/main.dart';
 import '../models/picking_line_model.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_barcode_listener/flutter_barcode_listener.dart';
 
 class StockPicking extends StatefulWidget {
   final Map data;
@@ -309,18 +310,6 @@ class _StockPickingState extends State<StockPicking> {
                                                           .id,
                                                       ['picked', value]);
                                                   _loadData();
-                                                  // setState(() {
-                                                  //   currFinishLineCount +=
-                                                  //       (value ?? false
-                                                  //           ? 1
-                                                  //           : -1);
-                                                  //   pl?.setPickingLine(
-                                                  //       pickingLineList?[index]
-                                                  //           .id,
-                                                  //       value!);
-                                                  //   pickingLineList?[index]
-                                                  //       .picked = value!;
-                                                  // });
                                                 }),
                                     ],
                                   ),

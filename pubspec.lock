@@ -86,6 +86,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_barcode_listener:
+    dependency: "direct main"
+    description:
+      name: flutter_barcode_listener
+      sha256: "095b04a29ddab58c623f3a78d88c641b870a6d4bc4bdf0c7a0d4bc58e337aed8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.4"
   flutter_barcode_scanner:
     dependency: "direct main"
     description:

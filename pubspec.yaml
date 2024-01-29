@@ -35,6 +35,7 @@ dependencies:
   shared_preferences: ^2.0.15
   logger: ^1.1.0
   flutter_barcode_scanner: ^2.0.0
+  flutter_barcode_listener: ^0.1.4
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
