@@ -69,14 +69,11 @@ class _StockPickingState extends State<StockPicking> {
     return _data;
   }
 
-  dynamic writeLine(int? id, args) async {
+  dynamic writeLine(int? id, Map args) async {
     dynamic _data = await orpc.callKw({
       'model': 'stock.move.line',
       'method': 'write',
-      'args': [
-        id,
-        {args[0]: args[1]}
-      ],
+      'args': [id, args],
       'kwargs': {},
     });
     if (_data == null) {
@@ -148,7 +145,7 @@ class _StockPickingState extends State<StockPicking> {
                     "#ff6666", "Cancel", true, ScanMode.DEFAULT);
                 for (PickingLineModel line in pickingLineList ?? []) {
                   if (line.displayName == barcodeScanRes) {
-                    dynamic temp = await writeLine(line.id, ['picked', true]);
+                    dynamic temp = await writeLine(line.id, {'picked': true});
                     _loadData();
                     break;
                   }
@@ -156,7 +153,7 @@ class _StockPickingState extends State<StockPicking> {
               }),
           IconButton(icon: const Icon(Icons.refresh), onPressed: refresh),
           isDone
-              ? Container()
+              ? const SizedBox()
               : IconButton(
                   icon: const Icon(Icons.check),
                   onPressed: () {
@@ -308,7 +305,7 @@ class _StockPickingState extends State<StockPicking> {
                                                   bool temp = await writeLine(
                                                       pickingLineList?[index]
                                                           .id,
-                                                      ['picked', value]);
+                                                      {'picked': value});
                                                   _loadData();
                                                 }),
                                     ],
@@ -324,22 +321,47 @@ class _StockPickingState extends State<StockPicking> {
       bottomNavigationBar: BottomAppBar(
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: OverflowBar(
-            overflowAlignment: OverflowBarAlignment.center,
-            alignment: MainAxisAlignment.center,
-            overflowSpacing: 5.0,
-            children: <Widget>[
-              ElevatedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    //shadowColor = !shadowColor;
-                  });
-                },
-                icon: Icon(Icons.visibility
-                    //shadowColor ? Icons.visibility_off : Icons.visibility,
-                    ),
-                label: const Text('shadow color'),
-              ),
+          child: Row(
+            // overflowAlignment: OverflowBarAlignment.center,
+            // alignment: MainAxisAlignment.center,
+            // overflowSpacing: 1,
+            children: [
+              TextButton(
+                  child: const Text(
+                    'Show all picking line',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  onPressed: () {
+                    showModalBottomSheet<void>(
+                      showDragHandle: true,
+                      context: context,
+                      constraints: const BoxConstraints(maxWidth: 640),
+                      builder: (context) {
+                        return SizedBox(
+                          height: 350,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 32.0),
+                            child: ListView.builder(
+                                shrinkWrap: true,
+                                scrollDirection: Axis.vertical,
+                                itemCount: pl?.pickingLineList.length ?? 0,
+                                itemBuilder: (context, index) {
+                                  return Container(
+                                    child: Row(children: [
+                                      SizedBox(
+                                          height: 100,
+                                          width: 280,
+                                          child: Text(
+                                              "${pl?.pickingLineList[index]}")),
+                                    ]),
+                                  );
+                                }),
+                          ),
+                        );
+                      },
+                    );
+                  }),
             ],
           ),
         ),

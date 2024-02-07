@@ -8,7 +8,7 @@ const tinySpacing = 3.0;
 const smallSpacing = 10.0;
 const double cardWidth = 115;
 const double widthConstraint = 450;
-const primaryColor = Color.fromARGB(97, 99, 109, 168);
+const primaryColor = Color.fromARGB(194, 99, 118, 227);
 
 final orpc = OdooClient('http://192.168.0.167:8069');
 void main() async {
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       title: 'Odoo Mobile',
       theme: ThemeData(
         primaryColor: primaryColor,
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.lightBlue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: HomePage(),
@@ -133,6 +133,9 @@ class MainMenuTextInput extends StatelessWidget {
         decoration: InputDecoration(
           prefixIcon: _Search(searchRead),
           suffixIcon: _ClearButton(controller: _controllerOutlined),
+          // _controllerOutlined.text == ""
+          //     ? Container()
+          //     : _ClearButton(controller: _controllerOutlined),
           labelText: '仓库作业',
           hintText: '请扫描条码',
           //helperText: '请扫描条码',
