@@ -15,6 +15,7 @@ class _StockPickingState extends State<StockPicking> {
   int stockMoveId = 0;
   String currPickingLocation = "";
   int currLocationIndex = 0;
+  bool currLocationIsScan = false;
   int totalLineCount = 1;
   int currFinishLineCount = 0;
   bool progressIndicator = false;
@@ -109,7 +110,10 @@ class _StockPickingState extends State<StockPicking> {
 
   void goPrevLocation() {
     setState(() {
-      if (currLocationIndex > 0) currLocationIndex--;
+      if (currLocationIndex > 0) {
+        currLocationIndex--;
+        currLocationIsScan = false;
+      }
       currPickingLocation = locationList[currLocationIndex];
       pickingLineList = pl?.getPickingLines(currPickingLocation);
     });
@@ -117,7 +121,10 @@ class _StockPickingState extends State<StockPicking> {
 
   void goNextLocation() {
     setState(() {
-      if (currLocationIndex < locationList.length - 1) currLocationIndex++;
+      if (currLocationIndex < locationList.length - 1) {
+        currLocationIndex++;
+        currLocationIsScan = false;
+      }
       currPickingLocation = locationList[currLocationIndex];
       pickingLineList = pl?.getPickingLines(currPickingLocation);
     });
@@ -153,6 +160,8 @@ class _StockPickingState extends State<StockPicking> {
               onPressed: () async {
                 barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
                     "#ff6666", "Cancel", true, ScanMode.DEFAULT);
+                if (barcodeScanRes == currPickingLocation)
+                  currLocationIsScan = true;
                 for (PickingLineModel line in pickingLineList ?? []) {
                   if (line.displayName == barcodeScanRes) {
                     dynamic temp = await writeLine(line.id, {'picked': true});
@@ -250,7 +259,11 @@ class _StockPickingState extends State<StockPicking> {
                     height: 100,
                     width: 220,
                     child: Card(
-                        color: isDone ? Colors.grey : Colors.indigoAccent[100],
+                        color: isDone
+                            ? Colors.grey
+                            : (currLocationIsScan
+                                ? Colors.greenAccent[100]
+                                : Colors.indigoAccent[100]),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Center(
