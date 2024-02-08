@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       title: 'Odoo Mobile',
       theme: ThemeData(
         primaryColor: primaryColor,
-        primarySwatch: Colors.lightBlue,
+        //primarySwatch: Colors.lightBlue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: HomePage(),
@@ -211,12 +211,17 @@ class Cards extends StatelessWidget {
                     onPressed: () {},
                   ),
                 ),
-                Text("拣货"),
+                const SizedBox(height: 20),
+                const Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Text("    拣货"),
+                )
               ]),
             ),
           ),
         ),
         SizedBox(
+          height: cardWidth,
           width: cardWidth,
           child: Card(
             color: Theme.of(context).colorScheme.surfaceVariant,
@@ -243,6 +248,7 @@ class Cards extends StatelessWidget {
           ),
         ),
         SizedBox(
+          height: cardWidth,
           width: cardWidth,
           child: Card(
             elevation: 0,

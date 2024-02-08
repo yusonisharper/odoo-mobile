@@ -21,6 +21,7 @@ class _StockPickingState extends State<StockPicking> {
   String orderState = 'draft';
   String barcodeScanRes = '';
   bool isDone = false;
+  bool fullBoxQuantity = false;
 
   PickingLine? pl;
   List<dynamic> locationList = [];
@@ -126,6 +127,15 @@ class _StockPickingState extends State<StockPicking> {
     return orderState == 'done';
   }
 
+  final MaterialStateProperty<Icon?> thumbIcon =
+      MaterialStateProperty.resolveWith<Icon?>(
+    (Set<MaterialState> states) {
+      if (states.contains(MaterialState.selected)) {
+        return const Icon(Icons.check);
+      }
+      return const Icon(Icons.close);
+    },
+  );
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
@@ -326,6 +336,19 @@ class _StockPickingState extends State<StockPicking> {
             // alignment: MainAxisAlignment.center,
             // overflowSpacing: 1,
             children: [
+              Switch(
+                thumbIcon: thumbIcon,
+                value: fullBoxQuantity,
+                onChanged: (bool value) {
+                  setState(() {
+                    fullBoxQuantity = value;
+                  });
+                },
+              ),
+              Text("多件扫描？"),
+              SizedBox(
+                width: 25,
+              ),
               TextButton(
                   child: const Text(
                     'Show all picking line',
