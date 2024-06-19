@@ -322,15 +322,20 @@ class _StockPickingState extends State<StockPicking> {
                                           activeColor: Colors.green,
                                           autofocus: true,
                                           value: pickingLineList?[index].picked,
-                                          onChanged: isDone
-                                              ? null
-                                              : (bool? value) async {
-                                                  bool temp = await writeLine(
-                                                      pickingLineList?[index]
-                                                          .id,
-                                                      {'picked': value});
-                                                  _loadData();
-                                                }),
+                                          onChanged:
+                                              isDone // if is done, freeze to change.
+                                                  ? null
+                                                  : (bool? value) async {
+                                                      bool temp =
+                                                          await writeLine(
+                                                              pickingLineList?[
+                                                                      index]
+                                                                  .id,
+                                                              {
+                                                            'picked': value
+                                                          });
+                                                      _loadData();
+                                                    }),
                                     ],
                                   ),
                                 ),
@@ -359,12 +364,12 @@ class _StockPickingState extends State<StockPicking> {
                 },
               ),
               Text("多件扫描？"),
-              SizedBox(
-                width: 25,
+              VerticalDivider(
+                width: 45,
               ),
               TextButton(
                   child: const Text(
-                    'Show all picking line',
+                    '显示所有拣货行',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   onPressed: () {

@@ -81,6 +81,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
+// search bar on the top
 final TextEditingController _controllerOutlined = TextEditingController();
 
 class MainMenuTextInput extends StatelessWidget {
@@ -146,6 +147,7 @@ class MainMenuTextInput extends StatelessWidget {
   }
 }
 
+// search icon in search bar
 class _Search extends StatelessWidget {
   final Future<dynamic> Function(String s) callback;
   const _Search(this.callback);
@@ -170,6 +172,7 @@ class _Search extends StatelessWidget {
       );
 }
 
+// clear icon in search bar
 class _ClearButton extends StatelessWidget {
   const _ClearButton({required this.controller});
 
